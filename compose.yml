@@ -1,0 +1,15 @@
+services:
+  master:
+    build: ./master
+    networks:
+      - master-subnet
+
+  usage-0:
+    build: ./usage-0
+    networks:
+      - usage-subnet-0
+
+networks:
+  # The presence of these objects is sufficient to define them
+  master-subnet: {}
+  usage-subnet-0: {}
