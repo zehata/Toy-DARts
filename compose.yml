@@ -4,8 +4,6 @@ services:
       dockerfile: ./src/tims-db/Dockerfile
     networks:
       - master-subnet
-    expose:
-      - 5342
     tty: true
 
   tims:
@@ -33,11 +31,36 @@ services:
     networks:
       - master-subnet
     
+  usage-0:
+    build: ./src/usage-0
 
-  # usage-0:
-  #   build: ./usage-0
-  #   networks:
-  #     - usage-subnet-0
+    networks:
+      - usage-subnet-0
+    # Host the FastAPI application on port 8000
+    ports:
+      - "8000:8000"
+
+    # Include development dependencies when working locally
+    environment:
+      - UV_NO_DEV=0
+
+    develop:
+      # Create a `watch` configuration to update the app
+      # https://docs.docker.com/compose/file-watch/#compose-watch-versus-bind-mounts
+      watch:
+        # Sync the working directory with the `/app` directory in the container
+        - action: sync
+          path: .
+          target: /app
+          # Exclude the project virtual environment — it could be for a
+          # different platform in the container
+          ignore:
+            - .venv/
+
+        # Rebuild the image if dependencies change by checking uv.lock
+        - action: rebuild
+          path: ./uv.lock
+    
 
 networks:
   # The presence of these objects is sufficient to define them
