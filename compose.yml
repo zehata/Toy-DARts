@@ -1,8 +1,7 @@
 services:
-  master-db:
+  tims-db:
     build:
-      context: .
-      dockerfile: ./master-db/Dockerfile
+      dockerfile: ./src/tims-db/Dockerfile
     networks:
       - master-subnet
     expose:
@@ -11,15 +10,29 @@ services:
 
   tims:
     build:
-      context: .
-      dockerfile: ./master/Dockerfile
+      dockerfile: ./src/tims/Dockerfile
     networks:
       - master-subnet
     expose:
       - 8081
     depends_on:
-      - master-db
-    entrypoint: /root/master/scripts/setup-glassfish.sh
+      - tims-db
+    entrypoint: /root/tims/scripts/setup-glassfish.sh
+
+  cbioportal-db:
+    build:
+      dockerfile: ./src/cbioportal-db/Dockerfile
+    networks:
+      - master-subnet
+    expose:
+      - 3306
+
+  cbioportal:
+    build:
+      dockerfile: ./src/cbioportal/Dockerfile
+    networks:
+      - master-subnet
+    
 
   # usage-0:
   #   build: ./usage-0
