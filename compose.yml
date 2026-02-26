@@ -1,13 +1,30 @@
 services:
-  master:
-    build: ./master
+  master-db:
+    build:
+      context: .
+      dockerfile: ./master-db/Dockerfile
     networks:
       - master-subnet
+    expose:
+      - 5342
+    tty: true
 
-  usage-0:
-    build: ./usage-0
+  tims:
+    build:
+      context: .
+      dockerfile: ./master/Dockerfile
     networks:
-      - usage-subnet-0
+      - master-subnet
+    expose:
+      - 8081
+    depends_on:
+      - master-db
+    entrypoint: /root/master/scripts/setup-glassfish.sh
+
+  # usage-0:
+  #   build: ./usage-0
+  #   networks:
+  #     - usage-subnet-0
 
 networks:
   # The presence of these objects is sufficient to define them
