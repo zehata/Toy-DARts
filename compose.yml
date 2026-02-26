@@ -31,6 +31,7 @@ services:
     networks:
       - master-subnet
     
+  # Copied from https://github.com/astral-sh/uv-docker-example/blob/main/compose.yml
   usage-0:
     build: ./src/usage-0
 
