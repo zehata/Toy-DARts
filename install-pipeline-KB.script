@@ -1,0 +1,75 @@
+#!/bin/bash
+
+TIMS_HOME=/pipelines/TIMS
+TIMS_PERL_BASE=/var/pipelines/TIMS/perl/
+
+# Assuming the KB volume is mount on /pipelines
+sudo mkdir /pipelines/
+sudo chown $USER:$USER /pipelines
+cd /pipelines
+# Download pipeline knowledge base from S3.
+#echo "Downloading pipeline knowledge base and un-tar it."
+
+wget http://mendel.bii.a-star.edu.sg/SEQUENCES/TIMS/pipelines.tar.gz .
+wget http://mendel.bii.a-star.edu.sg/SEQUENCES/TIMS/pipelines-KB.tar.gz .
+
+tar xzvf pipelines.tar.gz
+tar xzvf pipelines-KB.tar.gz
+
+# Create symbolic links for bin, programs, and genome-libraries at /var/pipelines/TIMS
+echo "Create symbolic links for vep, .vep, affy-lib, bin, programs, and genome-libraries at /var/pipelines/TIMS"
+cd /var/pipelines/TIMS
+ln -s /pipelines/TIMS/vep vep
+ln -s /pipelines/TIMS/.vep .vep
+ln -s /pipelines/TIMS/affy-lib affy-lib
+ln -s /pipelines/TIMS/bin bin
+ln -s /pipelines/TIMS/programs programs
+ln -s /pipelines/TIMS/genome-libraries genome-libraries
+
+
+### Installing HTseq
+cd $TIMS_HOME/programs/HTSeq-0.6.1p1/
+PYTHON2=$(which python2.7)
+$PYTHON2 setup.py build
+sudo $PYTHON2 setup.py install
+
+
+## Add environment variables
+cd $TIMS_HOME
+./addenv ~/.profile PATH="$""\PATH":$TIMS_HOME/programs/samtools/bin:$TIMS_HOME/programs/htslib/:$TIMS_HOME/vep/bin:$TIMS_HOME/vep:$TIMS_HOME/programs/rsem-1.2.21/:$TIMS_HOME/programs/HTSeq-0.6.1p1/bin/:
+PATH=$(echo $PATH)
+./addenv ~/.profile PATH="$""\PATH":$TIMS_PERL_BASE/perl-5.22.2/bin:.
+./addenv ~/.profile TIMS_HOME=$TIMS_HOME
+./addenv ~/.profile PATH="$""\PATH":$TIMS_HOME/bin/seq-pipelines
+./addenv ~/.profile PATH="$""\PATH":$TIMS_HOME/bin/array-pipelines
+./addenv ~/.profile PERL5LIB=$PERL5LIB:$TIMS_HOME/bin/perl-lib/
+
+echo PATH=$PATH
+source ~/.profile
+
+## Create a soft-link to $TIMS_HOME/genome-libraries/ at /genome-libraries/
+cd /
+sudo ln -s $TIMS_HOME/genome-libraries/
+
+## Configure parameters.conf
+cd $TIMS_HOME
+R_BASE=$(which R)
+R_HOME=$(dirname $R_BASE)
+JAVA_HOME=$(which java)
+PYTHON_HOME=$(which python)
+./replacevalue $TIMS_HOME/bin/conf-files/ngs-parameters.conf TIMS_HOME $TIMS_HOME > $TIMS_HOME/bin/conf-files/parameters.conf.1
+mv $TIMS_HOME/bin/conf-files/parameters.conf.1 $TIMS_HOME/bin/conf-files/ngs-parameters.conf
+./replacevalue $TIMS_HOME/bin/conf-files/ngs-parameters.conf MY_R_HOME $R_HOME > $TIMS_HOME/bin/conf-files/parameters.conf.1
+mv $TIMS_HOME/bin/conf-files/parameters.conf.1 $TIMS_HOME/bin/conf-files/ngs-parameters.conf
+./replacevalue $TIMS_HOME/bin/conf-files/ngs-parameters.conf MY_JAVA_HOME $JAVA_HOME > $TIMS_HOME/bin/conf-files/parameters.conf.1
+mv $TIMS_HOME/bin/conf-files/parameters.conf.1 $TIMS_HOME/bin/conf-files/ngs-parameters.conf
+./replacevalue $TIMS_HOME/bin/conf-files/ngs-parameters.conf MY_PYTHON_HOME $PYTHON_HOME > $TIMS_HOME/bin/conf-files/parameters.conf.1
+mv $TIMS_HOME/bin/conf-files/parameters.conf.1 $TIMS_HOME/bin/conf-files/ngs-parameters.conf
+./replacevalue $TIMS_HOME/bin/conf-files/ngs-parameters.conf TIMS_PERL_BASE $TIMS_PERL_BASE > $TIMS_HOME/bin/conf-files/parameters.conf.1
+mv $TIMS_HOME/bin/conf-files/parameters.conf.1 $TIMS_HOME/bin/conf-files/ngs-parameters.conf
+
+./replacevalue $TIMS_HOME/bin/conf-files/array-parameters.conf TIMS_HOME $TIMS_HOME > $TIMS_HOME/bin/conf-files/array-parameters.conf.1
+mv $TIMS_HOME/bin/conf-files/array-parameters.conf.1 $TIMS_HOME/bin/conf-files/array-parameters.conf
+./replacevalue $TIMS_HOME/bin/conf-files/array-parameters.conf MY_R_HOME $R_HOME > $TIMS_HOME/bin/conf-files/array-parameters.conf.1
+mv $TIMS_HOME/bin/conf-files/array-parameters.conf.1 $TIMS_HOME/bin/conf-files/array-parameters.conf
+

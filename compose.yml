@@ -12,8 +12,6 @@ services:
       dockerfile: ./src/tims/Dockerfile
     networks:
       - master-subnet
-    expose:
-      - 8081
     depends_on:
       - tims-db
     entrypoint: /home/tims/scripts/setup-glassfish.sh
@@ -37,7 +35,7 @@ services:
     build: ./src/ingress
 
     networks:
-      - testing-subnet
+      - master-subnet
     # Host the FastAPI application on port 8000
     ports:
       - "8000:8000"
@@ -68,7 +66,7 @@ services:
     build:
       dockerfile: ./src/omop-db/Dockerfile
     networks:
-      - testing-subnet
+      - master-subnet
     ports:
       - "5432:5432"
     volumes:
@@ -76,14 +74,14 @@ services:
 
     
   # Copied from https://github.com/astral-sh/uv-docker-example/blob/main/compose.yml
-  usage-0:
-    build: ./src/usage-0
+  data-serv:
+    build: ./src/data-serv
 
     networks:
       - usage-subnet-0
     # Host the FastAPI application on port 8000
     ports:
-      - "8000:8000"
+      - "8001:8000"
 
     # Include development dependencies when working locally
     environment:

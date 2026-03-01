@@ -7,4 +7,4 @@ asadmin set configs.config.server-config.network-config.network-listeners.networ
 asadmin delete-jvm-options -Xmx512m
 asadmin create-jvm-options -
 
-asadmin deploy ~/tims/dist/TIMS.war & /opt/tomcat-8.0.45/bin/catalina.sh start
+asadmin deploy ~/tims/dist/TIMS.war

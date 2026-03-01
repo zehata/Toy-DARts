@@ -59,3 +59,16 @@ RUN mkdir /var/TIMS/users/tims-pi/config
 RUN mkdir /var/TIMS/users/tims-pi/log
 RUN chown -R $USER:$USER /var/TIMS
 
+RUN apt-get -y install software-properties-common libdb5.3-dev libxml2 libxml2-dev libexpat1 libexpat1-dev libssl-dev libcurl4-openssl-dev libmysqlclient-dev graphviz
+RUN mkdir /var/pipelines/
+RUN chown root:root /var/pipelines/
+RUN mkdir /root/tmp_install
+
+ENV BASEDIR=/var/pipelines
+ENV WORKDIR=/root/tmp_install/
+
+WORKDIR $
+
+COPY src/tims /home/tims/
+RUN chown -R root:root /home/tims
+RUN chmod +x /home/tims/scripts/setup-glassfish.sh

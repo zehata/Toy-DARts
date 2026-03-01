@@ -6,7 +6,6 @@ RUN apt-get update
 RUN apt-get -y install postgresql
 
 USER postgres
-EXPOSE 5432
 RUN service postgresql start && psql -U postgres -d postgres -c "ALTER USER postgres WITH PASSWORD 'tims2017';"
 
 COPY tims/scripts/ /root/tims/scripts/
@@ -23,3 +22,8 @@ RUN service postgresql restart && \
     psql -U postgres -c 'CREATE DATABASE tims WITH TEMPLATE = template0' && \
     psql -d tims -U postgres < /root/tims/scripts/tims_database_creation.sql && \
     psql -d tims -U postgres -f /root/tims/scripts/tims_database_setup.sql
+
+USER postgres
+ENV PATH $PATH:/usr/lib/postgresql/16/bin
+EXPOSE 5432
+CMD ["postgres", "-D", "/etc/postgresql/16/main/"]
