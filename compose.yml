@@ -4,7 +4,8 @@ services:
       dockerfile: ./src/tims-db/Dockerfile
     networks:
       - master-subnet
-    tty: true
+    volumes:
+      - ./src/tims-db/volume:/home/docker/volume/
 
   tims:
     build:
@@ -15,7 +16,7 @@ services:
       - 8081
     depends_on:
       - tims-db
-    entrypoint: /root/tims/scripts/setup-glassfish.sh
+    entrypoint: /home/tims/scripts/setup-glassfish.sh
 
   cbioportal-db:
     build:
@@ -30,6 +31,49 @@ services:
       dockerfile: ./src/cbioportal/Dockerfile
     networks:
       - master-subnet
+
+  # Copied from https://github.com/astral-sh/uv-docker-example/blob/main/compose.yml
+  ingress:
+    build: ./src/ingress
+
+    networks:
+      - testing-subnet
+    # Host the FastAPI application on port 8000
+    ports:
+      - "8000:8000"
+
+    # Include development dependencies when working locally
+    environment:
+      - UV_NO_DEV=0
+
+    develop:
+      # Create a `watch` configuration to update the app
+      # https://docs.docker.com/compose/file-watch/#compose-watch-versus-bind-mounts
+      watch:
+        # Sync the working directory with the `/app` directory in the container
+        - action: sync
+          path: .
+          target: /app
+          # Exclude the project virtual environment — it could be for a
+          # different platform in the container
+          ignore:
+            - .venv/
+
+        # Rebuild the image if dependencies change by checking uv.lock
+        - action: rebuild
+          path: ./uv.lock
+
+
+  omop-db:
+    build:
+      dockerfile: ./src/omop-db/Dockerfile
+    networks:
+      - testing-subnet
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./src/omop-db/volume:/home/docker/volume/
+
     
   # Copied from https://github.com/astral-sh/uv-docker-example/blob/main/compose.yml
   usage-0:
@@ -66,4 +110,5 @@ services:
 networks:
   # The presence of these objects is sufficient to define them
   master-subnet: {}
+  testing-subnet: {}
   usage-subnet-0: {}
